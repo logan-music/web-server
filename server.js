@@ -45,7 +45,7 @@ app.post("/hook", async (req, res) => {
 
 // Keep server awake by pinging itself every 14 minutes
 setInterval(() => {
-  axios.get("https://my-node-server-cxqa.onrender.com/")
+  axios.get("https://web-server-ee1r.onrender.com/")
     .then(() => console.log("Self-ping successful"))
     .catch((err) => console.log("Self-ping failed", err.message));
 }, 1000 * 60 * 14); // 14 mins
