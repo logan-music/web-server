@@ -45,6 +45,14 @@ app.get("/ping", (req, res) => {
   res.send("Server active - TRC Bot");
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  // Self-ping kila baada ya dakika 5
+  setInterval(() => {
+    axios.get(`https://fb-page-vmgg.onrender.com/ping`)
+      .then(() => console.log("Self-ping successful"))
+      .catch(err => console.error("Self-ping failed:", err.message));
+  }, 5 * 60 * 1000); // 5 minutes
 });
